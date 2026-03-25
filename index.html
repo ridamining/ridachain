@@ -6,7 +6,11 @@
   <title>RidaChain - Mobile Mining</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Inter', sans-serif;
       background: #0A0C10;
@@ -44,8 +48,12 @@
       transition: all 0.2s;
       cursor: pointer;
     }
-    .nav-item.active { color: #FFB347; }
-    .nav-icon { font-size: 24px; }
+    .nav-item.active {
+      color: #FFB347;
+    }
+    .nav-icon {
+      font-size: 24px;
+    }
     .btn-primary {
       background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
       border: none;
@@ -142,6 +150,7 @@
 <body>
 
 <div id="app">
+  <!-- Auth Screens -->
   <div id="authScreen" class="page active">
     <div style="text-align: center; margin: 50px 20px;">
       <h1 style="font-size: 48px; background: linear-gradient(135deg,#FFB347,#FF8C00); -webkit-background-clip: text; background-clip: text; color: transparent;">RidaChain</h1>
@@ -169,6 +178,7 @@
     </div>
   </div>
 
+  <!-- Main App Pages -->
   <div id="mainApp" style="display: none;">
     <div id="homePage" class="page active">
       <div class="balance-card">
@@ -236,7 +246,8 @@
 <div id="toast" class="toast"></div>
 
 <script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwV6l8sAXbgJ5IIyoeQ-8PWY2BESbd4KYxr760J6yV85hYOdOA2MiK67SAVWRToMtxIaQ/exec';
+  // ==================== CONFIG ====================
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzOkKz7cBbCpwgefVj6DL8Yo2Z0B14TpZCkX3RzaZ9XIfVfszmC4SlFd9JxeK-RYk0ncA/exec';
   let currentToken = null;
   let currentUser = null;
 
@@ -426,8 +437,10 @@
       document.getElementById('mainApp').style.display = 'block';
       loadDashboard();
       switchPage('homePage');
-    }).catch(() => { logout(); });
+    }).catch(() => {
+      logout();
+    });
   }
 </script>
 </body>
-  </html>
+</html>
