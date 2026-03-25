@@ -17,10 +17,9 @@
       background: #0A0C10;
       color: #EFF3F8;
       overflow-x: hidden;
-      padding-bottom: 70px; /* for bottom nav */
+      padding-bottom: 70px;
     }
 
-    /* Dark theme with glassmorphism */
     .glass-card {
       background: rgba(18, 22, 28, 0.8);
       backdrop-filter: blur(12px);
@@ -29,7 +28,6 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     }
 
-    /* Bottom navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -60,7 +58,6 @@
       font-size: 24px;
     }
 
-    /* Buttons */
     .btn-primary {
       background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
       border: none;
@@ -87,7 +84,6 @@
       cursor: pointer;
     }
 
-    /* Inputs */
     input, textarea {
       background: #1A1E24;
       border: 1px solid #2A2F38;
@@ -101,7 +97,6 @@
     }
     input:focus { border-color: #FFB347; }
 
-    /* Pages */
     .page {
       display: none;
       padding: 20px;
@@ -114,7 +109,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Dashboard cards */
     .balance-card {
       background: linear-gradient(145deg, #1E1F2C, #15161F);
       border-radius: 32px;
@@ -146,7 +140,6 @@
       font-weight: 600;
     }
 
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 80px;
@@ -271,7 +264,6 @@
         <div style="margin: 16px 0;"><strong>Email:</strong> <span id="profileEmail"></span></div>
         <button class="btn-outline" id="logoutBtn">Logout</button>
       </div>
-      <!-- Optional admin panel -->
       <div id="adminPanel" style="display: none; margin-top: 20px;" class="glass-card">
         <h4>Admin Controls</h4>
         <input type="text" id="adminKey" placeholder="Config Key">
@@ -282,7 +274,6 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
       <div class="nav-item" data-page="homePage"><span class="nav-icon">🏠</span><span>Home</span></div>
       <div class="nav-item" data-page="miningPage"><span class="nav-icon">⛏️</span><span>Mine</span></div>
@@ -296,11 +287,10 @@
 
 <script>
   // ==================== CONFIG ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzNhwvrHv0wGWM4A3FeCGJobJm8uieFz3y6ijqwLmbTulpXNyqQZOEANjzk-Ce2_SxRhg/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxltl2sR5cwARCDmk6RH5vdmJk-DOr72FKT_pPm9lkVenJ3-aTS8OMzZxNUMLW9hCJUhA/exec';
   let currentToken = null;
   let currentUser = null;
 
-  // Helper: show toast
   function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -309,7 +299,6 @@
     setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // API call
   async function callApi(action, data = {}) {
     const payload = { action, ...data };
     if (currentToken && !payload.token) payload.token = currentToken;
@@ -328,7 +317,6 @@
     }
   }
 
-  // Load user data and update UI
   async function loadDashboard() {
     if (!currentToken) return;
     try {
@@ -342,7 +330,6 @@
       document.getElementById('teamReferralCount').innerText = data.referralCount;
       document.getElementById('profileEmail').innerText = data.email;
 
-      // Mining status
       const statusEl = document.getElementById('miningStatus');
       const cooldownMsg = document.getElementById('miningCooldownMsg');
       if (data.canMine) {
@@ -357,7 +344,6 @@
         cooldownMsg.innerText = `⏰ ${data.hoursRemaining.toFixed(1)} hours remaining`;
       }
 
-      // History
       const historyDiv = document.getElementById('historyList');
       if (data.history && data.history.length) {
         historyDiv.innerHTML = data.history.map(h => `
@@ -369,7 +355,6 @@
         historyDiv.innerHTML = '<div class="glass-card" style="padding: 12px;">No mining history yet.</div>';
       }
 
-      // Admin check
       if (data.email === 'admin@ridachain.com') {
         document.getElementById('adminPanel').style.display = 'block';
       } else {
@@ -378,18 +363,15 @@
     } catch (err) {}
   }
 
-  // Start mining
   async function startMining() {
     try {
       const data = await callApi('startMining');
       showToast(`You earned ${data.earned.toFixed(2)} RIDA!`, false);
       await loadDashboard();
-      // Switch to home to see new balance
       switchPage('homePage');
     } catch (err) {}
   }
 
-  // Authentication
   async function login(email, password) {
     try {
       const data = await callApi('login', { email, password });
@@ -421,7 +403,6 @@
     document.getElementById('registerScreen').classList.remove('active');
   }
 
-  // UI Helpers
   function showRegister(show) {
     if (show) {
       document.getElementById('authScreen').classList.remove('active');
@@ -439,7 +420,6 @@
     document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
   }
 
-  // Admin functions
   async function adminUpdateConfig() {
     const key = document.getElementById('adminKey').value;
     const value = document.getElementById('adminValue').value;
@@ -457,7 +437,6 @@
     } catch (err) {}
   }
 
-  // Event listeners
   document.getElementById('loginBtn').onclick = () => {
     const email = document.getElementById('loginEmail').value;
     const pwd = document.getElementById('loginPassword').value;
@@ -482,20 +461,16 @@
     }
   };
 
-  // Bottom navigation
   document.querySelectorAll('.nav-item').forEach(nav => {
     nav.onclick = () => switchPage(nav.dataset.page);
   });
 
-  // Admin buttons
   document.getElementById('adminUpdateBtn')?.addEventListener('click', adminUpdateConfig);
   document.getElementById('adminListUsersBtn')?.addEventListener('click', adminListUsers);
 
-  // Check saved session
   const savedToken = localStorage.getItem('rida_token');
   if (savedToken) {
     currentToken = savedToken;
-    // Verify token by calling getUserData
     callApi('getUserData').then(() => {
       document.getElementById('authScreen').classList.remove('active');
       document.getElementById('registerScreen').classList.remove('active');
