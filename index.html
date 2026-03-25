@@ -6,12 +6,7 @@
   <title>RidaChain - Mobile Mining</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background: #0A0C10;
@@ -19,7 +14,6 @@
       overflow-x: hidden;
       padding-bottom: 70px;
     }
-
     .glass-card {
       background: rgba(18, 22, 28, 0.8);
       backdrop-filter: blur(12px);
@@ -27,7 +21,6 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     }
-
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -51,13 +44,8 @@
       transition: all 0.2s;
       cursor: pointer;
     }
-    .nav-item.active {
-      color: #FFB347;
-    }
-    .nav-icon {
-      font-size: 24px;
-    }
-
+    .nav-item.active { color: #FFB347; }
+    .nav-icon { font-size: 24px; }
     .btn-primary {
       background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
       border: none;
@@ -72,7 +60,6 @@
     }
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
     .btn-outline {
       background: transparent;
       border: 1px solid #FFB347;
@@ -83,7 +70,6 @@
       width: 100%;
       cursor: pointer;
     }
-
     input, textarea {
       background: #1A1E24;
       border: 1px solid #2A2F38;
@@ -96,19 +82,16 @@
       transition: border 0.2s;
     }
     input:focus { border-color: #FFB347; }
-
     .page {
       display: none;
       padding: 20px;
       animation: fadeIn 0.3s ease;
     }
     .page.active { display: block; }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .balance-card {
       background: linear-gradient(145deg, #1E1F2C, #15161F);
       border-radius: 32px;
@@ -129,7 +112,6 @@
       font-size: 13px;
       color: #FFB347;
     }
-
     .referral-code {
       background: #1A1E24;
       padding: 12px;
@@ -139,7 +121,6 @@
       letter-spacing: 1px;
       font-weight: 600;
     }
-
     .toast {
       position: fixed;
       bottom: 80px;
@@ -161,19 +142,13 @@
 <body>
 
 <div id="app">
-  <!-- Auth Screens -->
   <div id="authScreen" class="page active">
     <div style="text-align: center; margin: 50px 20px;">
       <h1 style="font-size: 48px; background: linear-gradient(135deg,#FFB347,#FF8C00); -webkit-background-clip: text; background-clip: text; color: transparent;">RidaChain</h1>
       <p style="margin: 16px 0 32px;">Mine RIDA tokens with your referrals</p>
-
       <div class="glass-card" style="padding: 24px;">
-        <div style="margin-bottom: 20px;">
-          <input type="text" id="loginEmail" placeholder="Email" autocomplete="email">
-        </div>
-        <div style="margin-bottom: 20px;">
-          <input type="password" id="loginPassword" placeholder="Password">
-        </div>
+        <div style="margin-bottom: 20px;"><input type="text" id="loginEmail" placeholder="Email" autocomplete="email"></div>
+        <div style="margin-bottom: 20px;"><input type="password" id="loginPassword" placeholder="Password"></div>
         <button class="btn-primary" id="loginBtn">Login</button>
         <hr style="margin: 20px 0; border-color: #2A2F38;">
         <button class="btn-outline" id="showRegisterBtn">Create Account</button>
@@ -185,22 +160,15 @@
     <div style="margin: 30px 20px;">
       <h2 style="margin-bottom: 24px;">Create Account</h2>
       <div class="glass-card" style="padding: 24px;">
-        <div style="margin-bottom: 16px;">
-          <input type="email" id="regEmail" placeholder="Email">
-        </div>
-        <div style="margin-bottom: 16px;">
-          <input type="password" id="regPassword" placeholder="Password (min 6 chars)">
-        </div>
-        <div style="margin-bottom: 24px;">
-          <input type="text" id="regReferral" placeholder="Referral Code (optional)">
-        </div>
+        <div style="margin-bottom: 16px;"><input type="email" id="regEmail" placeholder="Email"></div>
+        <div style="margin-bottom: 16px;"><input type="password" id="regPassword" placeholder="Password (min 6 chars)"></div>
+        <div style="margin-bottom: 24px;"><input type="text" id="regReferral" placeholder="Referral Code (optional)"></div>
         <button class="btn-primary" id="registerBtn">Sign Up</button>
         <button class="btn-outline" id="backToLoginBtn" style="margin-top: 12px;">Back to Login</button>
       </div>
     </div>
   </div>
 
-  <!-- Main App Pages -->
   <div id="mainApp" style="display: none;">
     <div id="homePage" class="page active">
       <div class="balance-card">
@@ -209,23 +177,11 @@
         <div class="mining-status" id="miningStatus">Check status...</div>
       </div>
       <div class="glass-card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-          <span>Mining Rate</span>
-          <span id="miningRate">0.00</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-          <span>Total Referrals</span>
-          <span id="referralCount">0</span>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span>Referral Code</span>
-          <span id="referralCodeDisplay" style="font-family: monospace;">------</span>
-        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Mining Rate</span><span id="miningRate">0.00</span></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Total Referrals</span><span id="referralCount">0</span></div>
+        <div style="display: flex; justify-content: space-between;"><span>Referral Code</span><span id="referralCodeDisplay" style="font-family: monospace;">------</span></div>
       </div>
-      <div style="margin-top: 20px;">
-        <h3>Recent Mining History</h3>
-        <div id="historyList" style="margin-top: 12px;"></div>
-      </div>
+      <div style="margin-top: 20px;"><h3>Recent Mining History</h3><div id="historyList" style="margin-top: 12px;"></div></div>
     </div>
 
     <div id="miningPage" class="page">
@@ -247,14 +203,8 @@
       </div>
       <div class="glass-card" style="margin-top: 20px; padding: 20px;">
         <h3>Your Referral Stats</h3>
-        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
-          <span>Total Referrals</span>
-          <span id="teamReferralCount">0</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
-          <span>Bonus per referral</span>
-          <span>+0.05 RIDA/h</span>
-        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;"><span>Total Referrals</span><span id="teamReferralCount">0</span></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;"><span>Bonus per referral</span><span>+0.05 RIDA/h</span></div>
       </div>
     </div>
 
@@ -286,7 +236,6 @@
 <div id="toast" class="toast"></div>
 
 <script>
-  // ==================== CONFIG ====================
   const API_URL = 'https://script.google.com/macros/s/AKfycbymi8r591Z1uyhpUMOgPH2s6Cnew4rYXhfPG2MoT37DpjeZw2Xtsb3K0ahG0pwhUK69Cg/exec';
   let currentToken = null;
   let currentUser = null;
@@ -477,9 +426,7 @@
       document.getElementById('mainApp').style.display = 'block';
       loadDashboard();
       switchPage('homePage');
-    }).catch(() => {
-      logout();
-    });
+    }).catch(() => { logout(); });
   }
 </script>
 </body>
