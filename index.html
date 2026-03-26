@@ -2,251 +2,187 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>RidaChain - Mobile Mining</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       background: #0A0C10;
       color: #EFF3F8;
-      overflow-x: hidden;
       padding-bottom: 70px;
     }
     .glass-card {
       background: rgba(18, 22, 28, 0.8);
       backdrop-filter: blur(12px);
       border-radius: 28px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 20px;
+      margin-bottom: 20px;
     }
+    .btn {
+      background: linear-gradient(135deg, #FFB347, #FF8C00);
+      border: none;
+      padding: 14px;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 16px;
+      color: #0A0C10;
+      width: 100%;
+      cursor: pointer;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #FFB347;
+      color: #FFB347;
+    }
+    input {
+      background: #1A1E24;
+      border: 1px solid #2A2F38;
+      border-radius: 16px;
+      padding: 14px;
+      color: white;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .page { display: none; padding: 20px; }
+    .page.active { display: block; }
     .bottom-nav {
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
       background: #0F1117;
-      backdrop-filter: blur(10px);
       display: flex;
       justify-content: space-around;
-      padding: 12px 0 20px;
+      padding: 10px 0 20px;
       border-top: 1px solid rgba(255,255,255,0.1);
-      z-index: 100;
     }
     .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
+      text-align: center;
       font-size: 12px;
       color: #6C727F;
-      transition: all 0.2s;
       cursor: pointer;
     }
     .nav-item.active { color: #FFB347; }
-    .nav-icon { font-size: 24px; }
-    .btn-primary {
-      background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
-      border: none;
-      padding: 14px 20px;
-      border-radius: 40px;
-      font-weight: 700;
-      font-size: 16px;
-      color: #0A0C10;
-      width: 100%;
-      cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
-    }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid #FFB347;
-      padding: 12px 20px;
-      border-radius: 40px;
-      color: #FFB347;
-      font-weight: 600;
-      width: 100%;
-      cursor: pointer;
-    }
-    input, textarea {
-      background: #1A1E24;
-      border: 1px solid #2A2F38;
-      border-radius: 16px;
-      padding: 14px 16px;
-      color: white;
-      font-size: 16px;
-      width: 100%;
-      outline: none;
-      transition: border 0.2s;
-    }
-    input:focus { border-color: #FFB347; }
-    .page {
-      display: none;
-      padding: 20px;
-      animation: fadeIn 0.3s ease;
-    }
-    .page.active { display: block; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .balance-card {
-      background: linear-gradient(145deg, #1E1F2C, #15161F);
-      border-radius: 32px;
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .balance-amount {
-      font-size: 48px;
-      font-weight: 800;
-      margin: 10px 0;
-    }
-    .mining-status {
-      display: inline-block;
-      background: #FFB34720;
-      border-radius: 30px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: #FFB347;
-    }
-    .referral-code {
-      background: #1A1E24;
-      padding: 12px;
-      border-radius: 16px;
-      text-align: center;
-      font-family: monospace;
-      letter-spacing: 1px;
-      font-weight: 600;
-    }
+    .balance { font-size: 48px; font-weight: 800; margin: 10px 0; }
     .toast {
       position: fixed;
       bottom: 80px;
       left: 20px;
       right: 20px;
       background: #2A2F38;
-      color: white;
       padding: 12px;
       border-radius: 40px;
       text-align: center;
-      z-index: 200;
-      transition: opacity 0.3s;
       opacity: 0;
+      transition: 0.3s;
       pointer-events: none;
     }
     .toast.show { opacity: 1; }
-    .diagnostic {
-      margin-top: 20px;
-      font-size: 12px;
-      text-align: center;
-      color: #6C727F;
-    }
+    .diagnostic { font-size: 12px; text-align: center; margin-top: 20px; }
   </style>
 </head>
 <body>
-
 <div id="app">
-  <!-- Auth Screens -->
+  <!-- Auth Screen -->
   <div id="authScreen" class="page active">
     <div style="text-align: center; margin: 50px 20px;">
       <h1 style="font-size: 48px; background: linear-gradient(135deg,#FFB347,#FF8C00); -webkit-background-clip: text; background-clip: text; color: transparent;">RidaChain</h1>
       <p style="margin: 16px 0 32px;">Mine RIDA tokens with your referrals</p>
-      <div class="glass-card" style="padding: 24px;">
-        <div style="margin-bottom: 20px;"><input type="text" id="loginEmail" placeholder="Email" autocomplete="email"></div>
-        <div style="margin-bottom: 20px;"><input type="password" id="loginPassword" placeholder="Password"></div>
-        <button class="btn-primary" id="loginBtn">Login</button>
+      <div class="glass-card">
+        <input type="text" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button class="btn" id="loginBtn">Login</button>
         <hr style="margin: 20px 0; border-color: #2A2F38;">
-        <button class="btn-outline" id="showRegisterBtn">Create Account</button>
+        <button class="btn btn-outline" id="showRegisterBtn">Create Account</button>
       </div>
       <div class="diagnostic" id="diagnosticMsg">Checking connection...</div>
     </div>
   </div>
 
+  <!-- Register Screen -->
   <div id="registerScreen" class="page">
     <div style="margin: 30px 20px;">
-      <h2 style="margin-bottom: 24px;">Create Account</h2>
-      <div class="glass-card" style="padding: 24px;">
-        <div style="margin-bottom: 16px;"><input type="email" id="regEmail" placeholder="Email"></div>
-        <div style="margin-bottom: 16px;"><input type="password" id="regPassword" placeholder="Password (min 6 chars)"></div>
-        <div style="margin-bottom: 24px;"><input type="text" id="regReferral" placeholder="Referral Code (optional)"></div>
-        <button class="btn-primary" id="registerBtn">Sign Up</button>
-        <button class="btn-outline" id="backToLoginBtn" style="margin-top: 12px;">Back to Login</button>
+      <h2>Create Account</h2>
+      <div class="glass-card">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password (min 6 chars)">
+        <input type="text" id="regReferral" placeholder="Referral Code (optional)">
+        <button class="btn" id="registerBtn">Sign Up</button>
+        <button class="btn btn-outline" id="backToLoginBtn" style="margin-top: 12px;">Back to Login</button>
       </div>
     </div>
   </div>
 
-  <!-- Main App Pages -->
+  <!-- Main App -->
   <div id="mainApp" style="display: none;">
     <div id="homePage" class="page active">
-      <div class="balance-card">
+      <div class="glass-card" style="text-align: center;">
         <div>Your Balance</div>
-        <div class="balance-amount" id="balanceAmount">0.00</div>
-        <div class="mining-status" id="miningStatus">Check status...</div>
+        <div class="balance" id="balanceAmount">0.00</div>
+        <div id="miningStatus" class="diagnostic">Check status...</div>
       </div>
-      <div class="glass-card" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Mining Rate</span><span id="miningRate">0.00</span></div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><span>Total Referrals</span><span id="referralCount">0</span></div>
-        <div style="display: flex; justify-content: space-between;"><span>Referral Code</span><span id="referralCodeDisplay" style="font-family: monospace;">------</span></div>
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between;"><span>Mining Rate</span><span id="miningRate">0.00</span></div>
+        <div style="display: flex; justify-content: space-between; margin: 12px 0;"><span>Total Referrals</span><span id="referralCount">0</span></div>
+        <div style="display: flex; justify-content: space-between;"><span>Referral Code</span><span id="referralCodeDisplay">------</span></div>
       </div>
-      <div style="margin-top: 20px;"><h3>Recent Mining History</h3><div id="historyList" style="margin-top: 12px;"></div></div>
+      <div><h3>Recent Mining History</h3><div id="historyList"></div></div>
     </div>
 
-    <div id="miningPage" class="page">
-      <div class="glass-card" style="padding: 32px; text-align: center;">
-        <div style="font-size: 64px; margin-bottom: 20px;">⛏️</div>
+    <div id="miningPage" class="page" style="text-align: center;">
+      <div class="glass-card">
+        <div style="font-size: 64px;">⛏️</div>
         <h2>Start Mining</h2>
-        <p style="margin: 12px 0 24px;">Click the button once every 24 hours to earn RIDA.</p>
-        <button class="btn-primary" id="startMiningBtn" style="margin-bottom: 16px;">Start Mining</button>
-        <div id="miningCooldownMsg" class="mining-status" style="margin-top: 12px;"></div>
+        <p style="margin: 12px 0;">Click once every 24 hours to earn RIDA.</p>
+        <button class="btn" id="startMiningBtn">Start Mining</button>
+        <div id="miningCooldownMsg" class="diagnostic"></div>
       </div>
     </div>
 
     <div id="teamPage" class="page">
-      <div class="glass-card" style="padding: 24px;">
-        <h3>Invite Friends, Earn More</h3>
-        <p style="margin: 8px 0;">Share your referral code and get bonus RIDA when they join.</p>
-        <div class="referral-code" id="refCodeDisplay" style="margin: 16px 0;">------</div>
-        <button class="btn-primary" id="copyRefBtn">Copy Code</button>
+      <div class="glass-card">
+        <h3>Invite Friends</h3>
+        <p>Share your referral code and get bonus RIDA.</p>
+        <div id="refCodeDisplay" class="glass-card" style="margin: 16px 0; text-align: center; font-family: monospace;">------</div>
+        <button class="btn" id="copyRefBtn">Copy Code</button>
       </div>
-      <div class="glass-card" style="margin-top: 20px; padding: 20px;">
+      <div class="glass-card">
         <h3>Your Referral Stats</h3>
-        <div style="display: flex; justify-content: space-between; margin-top: 12px;"><span>Total Referrals</span><span id="teamReferralCount">0</span></div>
+        <div style="display: flex; justify-content: space-between;"><span>Total Referrals</span><span id="teamReferralCount">0</span></div>
         <div style="display: flex; justify-content: space-between; margin-top: 12px;"><span>Bonus per referral</span><span>+0.05 RIDA/h</span></div>
       </div>
     </div>
 
     <div id="profilePage" class="page">
-      <div class="glass-card" style="padding: 24px;">
+      <div class="glass-card">
         <h3>Account</h3>
         <div style="margin: 16px 0;"><strong>Email:</strong> <span id="profileEmail"></span></div>
-        <button class="btn-outline" id="logoutBtn">Logout</button>
+        <button class="btn btn-outline" id="logoutBtn">Logout</button>
       </div>
-      <div id="adminPanel" style="display: none; margin-top: 20px;" class="glass-card">
+      <div id="adminPanel" class="glass-card" style="display: none; margin-top: 20px;">
         <h4>Admin Controls</h4>
         <input type="text" id="adminKey" placeholder="Config Key">
         <input type="text" id="adminValue" placeholder="New Value">
-        <button id="adminUpdateBtn">Update Config</button>
+        <button id="adminUpdateBtn" style="margin-bottom: 8px;">Update Config</button>
         <button id="adminListUsersBtn">List Users</button>
         <pre id="adminUsersList" style="font-size: 12px; overflow-x: auto;"></pre>
       </div>
     </div>
 
     <div class="bottom-nav">
-      <div class="nav-item" data-page="homePage"><span class="nav-icon">🏠</span><span>Home</span></div>
-      <div class="nav-item" data-page="miningPage"><span class="nav-icon">⛏️</span><span>Mine</span></div>
-      <div class="nav-item" data-page="teamPage"><span class="nav-icon">👥</span><span>Team</span></div>
-      <div class="nav-item" data-page="profilePage"><span class="nav-icon">👤</span><span>Profile</span></div>
+      <div class="nav-item" data-page="homePage">🏠 Home</div>
+      <div class="nav-item" data-page="miningPage">⛏️ Mine</div>
+      <div class="nav-item" data-page="teamPage">👥 Team</div>
+      <div class="nav-item" data-page="profilePage">👤 Profile</div>
     </div>
   </div>
 </div>
-
 <div id="toast" class="toast"></div>
 
 <script>
-  // ==================== CONFIG ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbx8ZuNuqoEv5ebkjPjIjt92C-V3-0rw0rxtrzR_pT1bMMSHsiml7kKsTdH2wk36n_BDCA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwD0ixo6fwxLtW5iNXhkfxQqd6ntIyc_V2ESTEol-vQ799jHZYkkuDrxvS5oR4NocC2/exec';
   let currentToken = null;
   let currentUser = null;
 
@@ -396,14 +332,14 @@
     } catch (err) {}
   }
 
-  // Diagnostic: test API connectivity on page load
+  // Diagnostic
   async function checkAPI() {
     const diag = document.getElementById('diagnosticMsg');
     diag.innerText = 'Testing API connection...';
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: 'register', email: 'diagnostic@test.com', password: 'test123' }),
+        body: JSON.stringify({ action: 'register', email: 'diag@test.com', password: 'test' }),
         headers: { 'Content-Type': 'application/json' }
       });
       const text = await res.text();
@@ -452,7 +388,6 @@
   document.getElementById('adminUpdateBtn')?.addEventListener('click', adminUpdateConfig);
   document.getElementById('adminListUsersBtn')?.addEventListener('click', adminListUsers);
 
-  // Check saved session
   const savedToken = localStorage.getItem('rida_token');
   if (savedToken) {
     currentToken = savedToken;
