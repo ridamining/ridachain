@@ -6,11 +6,7 @@
   <title>RidaChain - Mobile Mining</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
       background: #0A0C10;
@@ -48,12 +44,8 @@
       transition: all 0.2s;
       cursor: pointer;
     }
-    .nav-item.active {
-      color: #FFB347;
-    }
-    .nav-icon {
-      font-size: 24px;
-    }
+    .nav-item.active { color: #FFB347; }
+    .nav-icon { font-size: 24px; }
     .btn-primary {
       background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
       border: none;
@@ -145,6 +137,12 @@
       pointer-events: none;
     }
     .toast.show { opacity: 1; }
+    .diagnostic {
+      margin-top: 20px;
+      font-size: 12px;
+      text-align: center;
+      color: #6C727F;
+    }
   </style>
 </head>
 <body>
@@ -162,6 +160,7 @@
         <hr style="margin: 20px 0; border-color: #2A2F38;">
         <button class="btn-outline" id="showRegisterBtn">Create Account</button>
       </div>
+      <div class="diagnostic" id="diagnosticMsg">Checking connection...</div>
     </div>
   </div>
 
@@ -246,8 +245,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-  // ==================== CONFIG ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzOkKz7cBbCpwgefVj6DL8Yo2Z0B14TpZCkX3RzaZ9XIfVfszmC4SlFd9JxeK-RYk0ncA/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyCgaxJtTZUpcq88XwCNpNczNvJbbW9TYt7F3kPN_A1FJ9aBUM00o6jQ_vIVGbJNihpKQ/exec';
   let currentToken = null;
   let currentUser = null;
 
@@ -397,6 +395,31 @@
     } catch (err) {}
   }
 
+  // Diagnostic: test API connectivity on page load
+  async function checkAPI() {
+    const diag = document.getElementById('diagnosticMsg');
+    diag.innerText = 'Testing API connection...';
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'register', email: 'diagnostic@test.com', password: 'test123' }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const text = await res.text();
+      if (text.includes('success') || text.includes('error')) {
+        diag.innerText = '✅ API reachable. You can register.';
+        diag.style.color = '#4caf50';
+      } else {
+        diag.innerText = '⚠️ API responded but with unexpected format. Check logs.';
+        diag.style.color = '#FFB347';
+      }
+    } catch (err) {
+      diag.innerText = '❌ API unreachable. Please ensure web app is deployed with "Anyone" access.';
+      diag.style.color = '#ff6b6b';
+    }
+  }
+
+  // Event listeners
   document.getElementById('loginBtn').onclick = () => {
     const email = document.getElementById('loginEmail').value;
     const pwd = document.getElementById('loginPassword').value;
@@ -428,6 +451,7 @@
   document.getElementById('adminUpdateBtn')?.addEventListener('click', adminUpdateConfig);
   document.getElementById('adminListUsersBtn')?.addEventListener('click', adminListUsers);
 
+  // Check saved session
   const savedToken = localStorage.getItem('rida_token');
   if (savedToken) {
     currentToken = savedToken;
@@ -437,9 +461,9 @@
       document.getElementById('mainApp').style.display = 'block';
       loadDashboard();
       switchPage('homePage');
-    }).catch(() => {
-      logout();
-    });
+    }).catch(() => { logout(); });
+  } else {
+    checkAPI();
   }
 </script>
 </body>
