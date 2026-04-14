@@ -1,406 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>RidaChain - Mobile Mining</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: #0A0C10;
-      color: #EFF3F8;
-      padding-bottom: 70px;
-    }
-    .glass-card {
-      background: rgba(18, 22, 28, 0.8);
-      backdrop-filter: blur(12px);
-      border-radius: 28px;
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .btn {
-      background: linear-gradient(135deg, #FFB347, #FF8C00);
-      border: none;
-      padding: 14px;
-      border-radius: 40px;
-      font-weight: bold;
-      font-size: 16px;
-      color: #0A0C10;
-      width: 100%;
-      cursor: pointer;
-    }
-    .btn-outline {
-      background: transparent;
-      border: 1px solid #FFB347;
-      color: #FFB347;
-    }
-    input {
-      background: #1A1E24;
-      border: 1px solid #2A2F38;
-      border-radius: 16px;
-      padding: 14px;
-      color: white;
-      width: 100%;
-      margin-bottom: 12px;
-    }
-    .page { display: none; padding: 20px; }
-    .page.active { display: block; }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #0F1117;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0 20px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .nav-item {
-      text-align: center;
-      font-size: 12px;
-      color: #6C727F;
-      cursor: pointer;
-    }
-    .nav-item.active { color: #FFB347; }
-    .balance { font-size: 48px; font-weight: 800; margin: 10px 0; }
-    .toast {
-      position: fixed;
-      bottom: 80px;
-      left: 20px;
-      right: 20px;
-      background: #2A2F38;
-      padding: 12px;
-      border-radius: 40px;
-      text-align: center;
-      opacity: 0;
-      transition: 0.3s;
-      pointer-events: none;
-    }
-    .toast.show { opacity: 1; }
-    .diagnostic { font-size: 12px; text-align: center; margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rida Social Wall</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap');
+        body { background: #020617; color: white; font-family: 'Outfit', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .post-card { transition: transform 0.2s; }
+        .post-card:active { transform: scale(0.98); }
+    </style>
 </head>
-<body>
-<div id="app">
-  <!-- Auth Screen -->
-  <div id="authScreen" class="page active">
-    <div style="text-align: center; margin: 50px 20px;">
-      <h1 style="font-size: 48px; background: linear-gradient(135deg,#FFB347,#FF8C00); -webkit-background-clip: text; background-clip: text; color: transparent;">RidaChain</h1>
-      <p style="margin: 16px 0 32px;">Mine RIDA tokens with your referrals</p>
-      <div class="glass-card">
-        <input type="text" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button class="btn" id="loginBtn">Login</button>
-        <hr style="margin: 20px 0; border-color: #2A2F38;">
-        <button class="btn btn-outline" id="showRegisterBtn">Create Account</button>
-      </div>
-      <div class="diagnostic" id="diagnosticMsg">Checking connection...</div>
-    </div>
-  </div>
+<body class="max-w-md mx-auto min-h-screen pb-20">
 
-  <!-- Register Screen -->
-  <div id="registerScreen" class="page">
-    <div style="margin: 30px 20px;">
-      <h2>Create Account</h2>
-      <div class="glass-card">
-        <input type="email" id="regEmail" placeholder="Email">
-        <input type="password" id="regPassword" placeholder="Password (min 6 chars)">
-        <input type="text" id="regReferral" placeholder="Referral Code (optional)">
-        <button class="btn" id="registerBtn">Sign Up</button>
-        <button class="btn btn-outline" id="backToLoginBtn" style="margin-top: 12px;">Back to Login</button>
-      </div>
-    </div>
-  </div>
+    <header class="sticky top-0 z-50 glass p-6 flex justify-between items-center">
+        <h1 class="text-2xl font-black italic">COMMUNITY<span class="text-sky-400">.</span></h1>
+        <div id="user-display" class="text-[10px] font-bold bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/30">---</div>
+    </header>
 
-  <!-- Main App -->
-  <div id="mainApp" style="display: none;">
-    <div id="homePage" class="page active">
-      <div class="glass-card" style="text-align: center;">
-        <div>Your Balance</div>
-        <div class="balance" id="balanceAmount">0.00</div>
-        <div id="miningStatus" class="diagnostic">Check status...</div>
-      </div>
-      <div class="glass-card">
-        <div style="display: flex; justify-content: space-between;"><span>Mining Rate</span><span id="miningRate">0.00</span></div>
-        <div style="display: flex; justify-content: space-between; margin: 12px 0;"><span>Total Referrals</span><span id="referralCount">0</span></div>
-        <div style="display: flex; justify-content: space-between;"><span>Referral Code</span><span id="referralCodeDisplay">------</span></div>
-      </div>
-      <div><h3>Recent Mining History</h3><div id="historyList"></div></div>
+    <div class="p-6">
+        <div class="glass p-4 rounded-3xl space-y-3">
+            <textarea id="post-content" placeholder="Share your mining progress..." class="w-full bg-transparent outline-none text-sm h-20 resize-none" maxlength="280"></textarea>
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Global Feed</span>
+                <button onclick="publishPost()" class="bg-sky-500 hover:bg-sky-400 text-white px-6 py-2 rounded-xl text-xs font-black transition">POST</button>
+            </div>
+        </div>
     </div>
 
-    <div id="miningPage" class="page" style="text-align: center;">
-      <div class="glass-card">
-        <div style="font-size: 64px;">⛏️</div>
-        <h2>Start Mining</h2>
-        <p style="margin: 12px 0;">Click once every 24 hours to earn RIDA.</p>
-        <button class="btn" id="startMiningBtn">Start Mining</button>
-        <div id="miningCooldownMsg" class="diagnostic"></div>
-      </div>
-    </div>
+    <div id="feed" class="px-6 space-y-4">
+        </div>
 
-    <div id="teamPage" class="page">
-      <div class="glass-card">
-        <h3>Invite Friends</h3>
-        <p>Share your referral code and get bonus RIDA.</p>
-        <div id="refCodeDisplay" class="glass-card" style="margin: 16px 0; text-align: center; font-family: monospace;">------</div>
-        <button class="btn" id="copyRefBtn">Copy Code</button>
-      </div>
-      <div class="glass-card">
-        <h3>Your Referral Stats</h3>
-        <div style="display: flex; justify-content: space-between;"><span>Total Referrals</span><span id="teamReferralCount">0</span></div>
-        <div style="display: flex; justify-content: space-between; margin-top: 12px;"><span>Bonus per referral</span><span>+0.05 RIDA/h</span></div>
-      </div>
-    </div>
+    <script>
+        // REPLACE WITH YOUR SOCIAL API URL
+        const SOCIAL_API = "https://script.google.com/macros/s/AKfycbxtuoY1jUvuEIqvAyR3k9rfRnGhLvBfZyawvuNPvPpEvUlsPnqS-OsNgbpy8XrjF-LVOQ/exec";
+        
+        // Auto-detect user from URL params
+        const params = new URLSearchParams(window.location.search);
+        const user = {
+            uid: params.get('uid') || "Guest",
+            username: params.get('username') || "Anonymous"
+        };
 
-    <div id="profilePage" class="page">
-      <div class="glass-card">
-        <h3>Account</h3>
-        <div style="margin: 16px 0;"><strong>Email:</strong> <span id="profileEmail"></span></div>
-        <button class="btn btn-outline" id="logoutBtn">Logout</button>
-      </div>
-      <div id="adminPanel" class="glass-card" style="display: none; margin-top: 20px;">
-        <h4>Admin Controls</h4>
-        <input type="text" id="adminKey" placeholder="Config Key">
-        <input type="text" id="adminValue" placeholder="New Value">
-        <button id="adminUpdateBtn" style="margin-bottom: 8px;">Update Config</button>
-        <button id="adminListUsersBtn">List Users</button>
-        <pre id="adminUsersList" style="font-size: 12px; overflow-x: auto;"></pre>
-      </div>
-    </div>
+        window.onload = () => {
+            document.getElementById('user-display').innerText = user.username.toUpperCase();
+            loadFeed();
+        };
 
-    <div class="bottom-nav">
-      <div class="nav-item" data-page="homePage">🏠 Home</div>
-      <div class="nav-item" data-page="miningPage">⛏️ Mine</div>
-      <div class="nav-item" data-page="teamPage">👥 Team</div>
-      <div class="nav-item" data-page="profilePage">👤 Profile</div>
-    </div>
-  </div>
-</div>
-<div id="toast" class="toast"></div>
+        async function loadFeed() {
+            const res = await (await fetch(SOCIAL_API, { method: 'POST', body: JSON.stringify({ action: 'getFeed' }) })).json();
+            const feed = document.getElementById('feed');
+            feed.innerHTML = res.data.map(p => `
+                <div class="glass p-5 rounded-[2rem] post-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center font-black text-xs">
+                            ${p.username.charAt(0)}
+                        </div>
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-tighter">${p.username}</p>
+                            <p class="text-[8px] opacity-40 font-bold">${new Date(p.timestamp).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-200 leading-relaxed mb-4">${p.content}</p>
+                    <div class="flex gap-4 border-t border-white/5 pt-3">
+                        <button onclick="likePost('${p.postId}')" class="text-[10px] font-black text-slate-400 flex items-center gap-2">
+                            <i class="far fa-heart text-sky-400"></i> ${p.likes}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-<script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwD0ixo6fwxLtW5iNXhkfxQqd6ntIyc_V2ESTEol-vQ799jHZYkkuDrxvS5oR4NocC2/exec';
-  let currentToken = null;
-  let currentUser = null;
+        async function publishPost() {
+            const content = document.getElementById('post-content').value;
+            if(!content) return;
+            await fetch(SOCIAL_API, { method: 'POST', body: JSON.stringify({ 
+                action: 'createPost', uid: user.uid, username: user.username, content: content 
+            }) });
+            document.getElementById('post-content').value = '';
+            loadFeed();
+        }
 
-  function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.style.background = isError ? '#C62828' : '#2A2F38';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-  }
-
-  async function callApi(action, data = {}) {
-    const payload = { action, ...data };
-    if (currentToken && !payload.token) payload.token = currentToken;
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error);
-      return json.data;
-    } catch (err) {
-      showToast(err.message, true);
-      throw err;
-    }
-  }
-
-  async function loadDashboard() {
-    if (!currentToken) return;
-    try {
-      const data = await callApi('getUserData');
-      currentUser = data;
-      document.getElementById('balanceAmount').innerText = parseFloat(data.balance).toFixed(2);
-      document.getElementById('miningRate').innerText = data.miningRate.toFixed(3) + ' RIDA/h';
-      document.getElementById('referralCount').innerText = data.referralCount;
-      document.getElementById('referralCodeDisplay').innerText = data.referralCode;
-      document.getElementById('refCodeDisplay').innerText = data.referralCode;
-      document.getElementById('teamReferralCount').innerText = data.referralCount;
-      document.getElementById('profileEmail').innerText = data.email;
-
-      const statusEl = document.getElementById('miningStatus');
-      const cooldownMsg = document.getElementById('miningCooldownMsg');
-      if (data.canMine) {
-        statusEl.innerText = 'Ready to mine!';
-        statusEl.style.background = '#2e7d3220';
-        statusEl.style.color = '#4caf50';
-        cooldownMsg.innerText = '';
-      } else {
-        statusEl.innerText = `Next mining in ${data.hoursRemaining.toFixed(1)}h`;
-        statusEl.style.background = '#ffb34720';
-        statusEl.style.color = '#FFB347';
-        cooldownMsg.innerText = `⏰ ${data.hoursRemaining.toFixed(1)} hours remaining`;
-      }
-
-      const historyDiv = document.getElementById('historyList');
-      if (data.history && data.history.length) {
-        historyDiv.innerHTML = data.history.map(h => `
-          <div class="glass-card" style="padding: 12px; margin-bottom: 8px;">
-            +${h.amount.toFixed(2)} RIDA at ${new Date(h.date).toLocaleString()} (rate: ${h.rate.toFixed(3)})
-          </div>
-        `).join('');
-      } else {
-        historyDiv.innerHTML = '<div class="glass-card" style="padding: 12px;">No mining history yet.</div>';
-      }
-
-      if (data.email === 'admin@ridachain.com') {
-        document.getElementById('adminPanel').style.display = 'block';
-      } else {
-        document.getElementById('adminPanel').style.display = 'none';
-      }
-    } catch (err) {}
-  }
-
-  async function startMining() {
-    try {
-      const data = await callApi('startMining');
-      showToast(`You earned ${data.earned.toFixed(2)} RIDA!`, false);
-      await loadDashboard();
-      switchPage('homePage');
-    } catch (err) {}
-  }
-
-  async function login(email, password) {
-    try {
-      const data = await callApi('login', { email, password });
-      currentToken = data.token;
-      localStorage.setItem('rida_token', currentToken);
-      localStorage.setItem('rida_email', email);
-      document.getElementById('authScreen').classList.remove('active');
-      document.getElementById('registerScreen').classList.remove('active');
-      document.getElementById('mainApp').style.display = 'block';
-      await loadDashboard();
-      switchPage('homePage');
-    } catch (err) {}
-  }
-
-  async function register(email, password, referralCode) {
-    try {
-      await callApi('register', { email, password, referralCode });
-      showToast('Registration successful! Please login.');
-      showRegister(false);
-    } catch (err) {}
-  }
-
-  function logout() {
-    currentToken = null;
-    localStorage.removeItem('rida_token');
-    localStorage.removeItem('rida_email');
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('authScreen').classList.add('active');
-    document.getElementById('registerScreen').classList.remove('active');
-  }
-
-  function showRegister(show) {
-    if (show) {
-      document.getElementById('authScreen').classList.remove('active');
-      document.getElementById('registerScreen').classList.add('active');
-    } else {
-      document.getElementById('authScreen').classList.add('active');
-      document.getElementById('registerScreen').classList.remove('active');
-    }
-  }
-
-  function switchPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-    document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active');
-  }
-
-  async function adminUpdateConfig() {
-    const key = document.getElementById('adminKey').value;
-    const value = document.getElementById('adminValue').value;
-    if (!key || !value) return showToast('Key and value required');
-    try {
-      await callApi('adminUpdateConfig', { key, value });
-      showToast('Config updated');
-    } catch (err) {}
-  }
-
-  async function adminListUsers() {
-    try {
-      const data = await callApi('adminGetUsers', { adminPassword: 'dummy' });
-      document.getElementById('adminUsersList').innerText = JSON.stringify(data.users, null, 2);
-    } catch (err) {}
-  }
-
-  // Diagnostic
-  async function checkAPI() {
-    const diag = document.getElementById('diagnosticMsg');
-    diag.innerText = 'Testing API connection...';
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'register', email: 'diag@test.com', password: 'test' }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const text = await res.text();
-      if (text.includes('success') || text.includes('error')) {
-        diag.innerText = '✅ API reachable. You can register.';
-        diag.style.color = '#4caf50';
-      } else {
-        diag.innerText = '⚠️ API responded but with unexpected format. Check logs.';
-        diag.style.color = '#FFB347';
-      }
-    } catch (err) {
-      diag.innerText = '❌ API unreachable. Please ensure web app is deployed with "Anyone" access.';
-      diag.style.color = '#ff6b6b';
-    }
-  }
-
-  // Event listeners
-  document.getElementById('loginBtn').onclick = () => {
-    const email = document.getElementById('loginEmail').value;
-    const pwd = document.getElementById('loginPassword').value;
-    if (email && pwd) login(email, pwd);
-    else showToast('Enter email and password', true);
-  };
-  document.getElementById('showRegisterBtn').onclick = () => showRegister(true);
-  document.getElementById('backToLoginBtn').onclick = () => showRegister(false);
-  document.getElementById('registerBtn').onclick = () => {
-    const email = document.getElementById('regEmail').value;
-    const pwd = document.getElementById('regPassword').value;
-    const ref = document.getElementById('regReferral').value;
-    if (email && pwd && pwd.length >= 6) register(email, pwd, ref);
-    else showToast('Valid email and password (min 6 chars)', true);
-  };
-  document.getElementById('logoutBtn').onclick = logout;
-  document.getElementById('startMiningBtn').onclick = startMining;
-  document.getElementById('copyRefBtn').onclick = () => {
-    if (currentUser && currentUser.referralCode) {
-      navigator.clipboard.writeText(currentUser.referralCode);
-      showToast('Referral code copied!');
-    }
-  };
-
-  document.querySelectorAll('.nav-item').forEach(nav => {
-    nav.onclick = () => switchPage(nav.dataset.page);
-  });
-
-  document.getElementById('adminUpdateBtn')?.addEventListener('click', adminUpdateConfig);
-  document.getElementById('adminListUsersBtn')?.addEventListener('click', adminListUsers);
-
-  const savedToken = localStorage.getItem('rida_token');
-  if (savedToken) {
-    currentToken = savedToken;
-    callApi('getUserData').then(() => {
-      document.getElementById('authScreen').classList.remove('active');
-      document.getElementById('registerScreen').classList.remove('active');
-      document.getElementById('mainApp').style.display = 'block';
-      loadDashboard();
-      switchPage('homePage');
-    }).catch(() => { logout(); });
-  } else {
-    checkAPI();
-  }
-</script>
+        async function likePost(id) {
+            await fetch(SOCIAL_API, { method: 'POST', body: JSON.stringify({ action: 'likePost', postId: id }) });
+            loadFeed();
+        }
+    </script>
 </body>
 </html>
+
