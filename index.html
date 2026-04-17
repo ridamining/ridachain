@@ -13,11 +13,8 @@
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .admin-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
         .btn-send { background: linear-gradient(135deg, var(--sky) 0%, var(--indigo) 100%); }
-        
-        /* Slideshow Animation */
         .slide-up { animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -25,25 +22,18 @@
 
     <div id="admin-section" class="hidden">
         <div class="glass admin-glow p-5 rounded-[2.5rem] relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-3">
-                <span class="animate-pulse flex h-2 w-2 rounded-full bg-red-500"></span>
-            </div>
+            <div class="absolute top-0 right-0 p-3"><span class="animate-pulse flex h-2 w-2 rounded-full bg-red-500"></span></div>
             <div class="flex items-center gap-3 mb-2">
                 <i class="fas fa-bullhorn text-red-500 text-sm"></i>
                 <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500">Official Broadcast</h3>
             </div>
-            <div id="latest-announcement" class="text-sm font-medium text-slate-200 italic">
-                Awaiting latest updates from Rida HQ...
-            </div>
+            <div id="latest-announcement" class="text-sm font-medium text-slate-200 italic">Awaiting updates...</div>
         </div>
     </div>
 
     <div class="glass p-4 rounded-[2.5rem] h-32 flex flex-col justify-center items-center text-center relative overflow-hidden">
-        <div class="absolute top-2 left-4 text-[8px] font-black opacity-30 uppercase tracking-widest">Global Discovery</div>
-        <div id="slideshow-content" class="slide-up">
-            <i class="fab fa-twitter text-sky-400 mb-2"></i>
-            <p class="text-[10px] font-bold text-slate-400">Searching #RidaNetwork on Twitter...</p>
-        </div>
+        <div class="absolute top-2 left-4 text-[8px] font-black opacity-30 uppercase tracking-widest text-sky-400">Global Discovery</div>
+        <div id="slideshow-content" class="slide-up text-center"></div>
         <div class="absolute bottom-0 left-0 h-1 bg-sky-500/20" id="slide-progress" style="width: 0%"></div>
     </div>
 
@@ -52,7 +42,7 @@
             <div id="user-avatar" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-black text-sm uppercase">?</div>
             <div>
                 <p id="display-name" class="text-xs font-black uppercase tracking-widest text-sky-400">Guest Miner</p>
-                <p class="text-[8px] opacity-40 font-bold uppercase" id="user-status text-slate-500">Standard Node</p>
+                <p id="user-rank" class="text-[8px] opacity-40 font-bold uppercase text-slate-500">Standard Node</p>
             </div>
         </div>
         <textarea id="post-text" placeholder="What's happening in the network?" 
@@ -63,19 +53,26 @@
     </div>
 
     <div id="feed-container" class="space-y-4 pb-20">
-        </div>
+        <div class="text-center p-10 opacity-20"><i class="fas fa-spinner animate-spin"></i></div>
+    </div>
 
     <script>
         const SOCIAL_API = "https://script.google.com/macros/s/AKfycbxjIBCavPwdL-F9ym4m0Oz77W-KgIY3JXQ1DcR2fl3HwfZDTT9SxoRARRRzWryEX6lGOQ/exec";
         const ADMIN_UID = "RIDA-259259";
 
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // --- IDENTITY FIX ---
         const currentUser = {
             uid: urlParams.get('uid') || "GUEST",
-            username: urlParams.get('username') || "Anonymous"
+            username: urlParams.get('user') || urlParams.get('username') || "Anonymous"
         };
 
-        // --- SLIDESHOW LOGIC ---
+        // If it's your UID, ensure the name is correct even if URL fails
+        if(currentUser.uid === ADMIN_UID) {
+            currentUser.username = "ridaAdmin";
+        }
+
         const slides = [
             { icon: 'fab fa-twitter', color: 'text-sky-400', text: 'Recent tweet: Join the #RidaNetwork revolution! 🚀' },
             { icon: 'fab fa-instagram', color: 'text-pink-500', text: 'New photo posted under #RidaNetwork' },
@@ -88,27 +85,18 @@
             const container = document.getElementById('slideshow-content');
             const progress = document.getElementById('slide-progress');
             const slide = slides[currentSlide];
+            if(!container) return;
             
             container.classList.remove('slide-up');
-            void container.offsetWidth; // Trigger reflow
+            void container.offsetWidth;
             container.classList.add('slide-up');
-
-            container.innerHTML = `
-                <i class="${slide.icon} ${slide.color} text-xl mb-2"></i>
-                <p class="text-[11px] font-bold text-slate-200 px-6">${slide.text}</p>
-            `;
-
+            container.innerHTML = `<i class="${slide.icon} ${slide.color} text-xl mb-2"></i><p class="text-[11px] font-bold text-slate-200 px-6">${slide.text}</p>`;
             progress.style.transition = 'none';
             progress.style.width = '0%';
-            setTimeout(() => {
-                progress.style.transition = 'width 30s linear';
-                progress.style.width = '100%';
-            }, 100);
-
+            setTimeout(() => { progress.style.transition = 'width 30s linear'; progress.style.width = '100%'; }, 100);
             currentSlide = (currentSlide + 1) % slides.length;
         }
 
-        // --- CORE WALL LOGIC ---
         async function loadFeed() {
             try {
                 const response = await fetch(SOCIAL_API, { method: 'POST', body: JSON.stringify({ action: 'getFeed' }) });
@@ -116,27 +104,37 @@
                 if (result.success) {
                     const container = document.getElementById('feed-container');
                     
-                    // Filter for Admin Announcement
                     const adminPost = result.data.find(p => p.uid === ADMIN_UID);
                     if (adminPost) {
                         document.getElementById('admin-section').classList.remove('hidden');
                         document.getElementById('latest-announcement').innerText = adminPost.content;
                     }
 
-                    container.innerHTML = result.data.map(post => `
-                        <div class="glass p-5 rounded-[2rem] ${post.uid === ADMIN_UID ? 'admin-glow' : ''}">
+                    container.innerHTML = result.data.map(post => {
+                        const isMainAdmin = post.uid === ADMIN_UID;
+                        const nameToDisplay = isMainAdmin ? "ridaAdmin" : (post.username || "Anonymous");
+                        
+                        return `
+                        <div class="glass p-5 rounded-[2rem] ${isMainAdmin ? 'admin-glow' : ''}">
                             <div class="flex justify-between mb-4">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black ${post.uid === ADMIN_UID ? 'text-red-500' : 'text-sky-400'}">
-                                        ${post.username.charAt(0)}
+                                    <div class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black ${isMainAdmin ? 'text-red-500' : 'text-sky-400'}">
+                                        ${nameToDisplay.charAt(0)}
                                     </div>
-                                    <p class="text-[10px] font-black uppercase">${post.username} ${post.uid === ADMIN_UID ? ' <i class="fas fa-check-circle text-red-500 ml-1"></i>' : ''}</p>
+                                    <p class="text-[10px] font-black uppercase">${nameToDisplay} ${isMainAdmin ? ' <i class="fas fa-check-circle text-red-500 ml-1"></i>' : ''}</p>
                                 </div>
-                                <p class="text-[8px] opacity-30 font-bold">${new Date(post.timestamp).toLocaleDateString()}</p>
+                                <div class="flex items-center gap-3">
+                                    <p class="text-[8px] opacity-30 font-bold">${new Date(post.timestamp).toLocaleDateString()}</p>
+                                    ${currentUser.uid === ADMIN_UID ? `<i onclick="deletePost('${post.id || post.timestamp}')" class="fas fa-trash-alt text-red-500/20 hover:text-red-500 cursor-pointer text-[10px]"></i>` : ''}
+                                </div>
                             </div>
                             <p class="text-xs leading-relaxed text-slate-300">${post.content}</p>
+                            <div class="mt-4 flex gap-4 border-t border-white/5 pt-3">
+                                <button class="text-[9px] font-bold text-slate-500 hover:text-sky-400"><i class="fas fa-heart mr-1"></i> LIKE</button>
+                                <button class="text-[9px] font-bold text-slate-500 hover:text-sky-400"><i class="fas fa-comment mr-1"></i> REPLY</button>
+                            </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                 }
             } catch (err) { console.error("Sync Error", err); }
         }
@@ -144,21 +142,40 @@
         async function publishPost() {
             const text = document.getElementById('post-text').value;
             if (!text.trim()) return;
+            // Send the username correctly to the database
             await fetch(SOCIAL_API, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'createPost', uid: currentUser.uid, username: currentUser.username, content: text })
+                body: JSON.stringify({ 
+                    action: 'createPost', 
+                    uid: currentUser.uid, 
+                    username: currentUser.username, 
+                    content: text 
+                })
             });
             document.getElementById('post-text').value = '';
+            loadFeed();
+        }
+
+        async function deletePost(postId) {
+            if(!confirm("Delete this individual post?")) return;
+            await fetch(SOCIAL_API, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'deletePost', postId: postId, adminUid: currentUser.uid })
+            });
             loadFeed();
         }
 
         window.onload = () => {
             document.getElementById('display-name').innerText = currentUser.username;
             document.getElementById('user-avatar').innerText = currentUser.username.charAt(0);
+            if(currentUser.uid === ADMIN_UID) document.getElementById('user-rank').innerText = "NETWORK ADMINISTRATOR";
+            
             loadFeed();
             runSlideshow();
-            setInterval(runSlideshow, 30000); // 30 second timer
+            setInterval(runSlideshow, 30000);
+            setInterval(loadFeed, 60000); // Auto-refresh wall every minute
         };
     </script>
 </body>
 </html>
+
