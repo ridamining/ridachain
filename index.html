@@ -2,86 +2,163 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RIDA Social Wall V2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rida Community Wall</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: transparent; color: #fff; font-family: 'Outfit', sans-serif; margin: 0; padding: 10px; }
-        .post-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; transition: 0.3s; }
-        .post-card:hover { border-color: #38bdf8; }
-        .admin-post { border: 1px solid rgba(56, 189, 248, 0.3); background: linear-gradient(to bottom right, rgba(56, 189, 248, 0.05), transparent); }
-        .verified-badge { color: #38bdf8; font-size: 10px; margin-left: 4px; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap');
+        :root { --sky: #38bdf8; --indigo: #6366f1; --admin: #ef4444; }
+        body { background: transparent; color: #fff; font-family: 'Outfit', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .admin-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-send { background: linear-gradient(135deg, var(--sky) 0%, var(--indigo) 100%); }
+        
+        /* Slideshow Animation */
+        .slide-up { animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body>
-    <div id="wall-container" class="space-y-4 pb-20">
-        <div class="flex justify-center p-10"><i class="fas fa-circle-notch animate-spin text-sky-500 text-2xl"></i></div>
+<body class="p-4 space-y-6">
+
+    <div id="admin-section" class="hidden">
+        <div class="glass admin-glow p-5 rounded-[2.5rem] relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-3">
+                <span class="animate-pulse flex h-2 w-2 rounded-full bg-red-500"></span>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-bullhorn text-red-500 text-sm"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500">Official Broadcast</h3>
+            </div>
+            <div id="latest-announcement" class="text-sm font-medium text-slate-200 italic">
+                Awaiting latest updates from Rida HQ...
+            </div>
+        </div>
     </div>
 
-    <div class="fixed bottom-4 left-4 right-4 flex gap-2">
-        <input type="text" id="post-text" placeholder="Share with the network..." class="flex-1 bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl outline-none text-sm">
-        <button onclick="publishPost()" class="bg-sky-500 px-6 rounded-2xl active:scale-90 transition-transform"><i class="fas fa-paper-plane"></i></button>
+    <div class="glass p-4 rounded-[2.5rem] h-32 flex flex-col justify-center items-center text-center relative overflow-hidden">
+        <div class="absolute top-2 left-4 text-[8px] font-black opacity-30 uppercase tracking-widest">Global Discovery</div>
+        <div id="slideshow-content" class="slide-up">
+            <i class="fab fa-twitter text-sky-400 mb-2"></i>
+            <p class="text-[10px] font-bold text-slate-400">Searching #RidaNetwork on Twitter...</p>
+        </div>
+        <div class="absolute bottom-0 left-0 h-1 bg-sky-500/20" id="slide-progress" style="width: 0%"></div>
     </div>
+
+    <div class="glass p-5 rounded-[2.5rem]">
+        <div class="flex items-center gap-3 mb-4">
+            <div id="user-avatar" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-black text-sm uppercase">?</div>
+            <div>
+                <p id="display-name" class="text-xs font-black uppercase tracking-widest text-sky-400">Guest Miner</p>
+                <p class="text-[8px] opacity-40 font-bold uppercase" id="user-status text-slate-500">Standard Node</p>
+            </div>
+        </div>
+        <textarea id="post-text" placeholder="What's happening in the network?" 
+            class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-sky-500/50 transition h-20 resize-none"></textarea>
+        <div class="flex justify-end mt-3">
+            <button onclick="publishPost()" class="btn-send px-8 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase">Post to Wall</button>
+        </div>
+    </div>
+
+    <div id="feed-container" class="space-y-4 pb-20">
+        </div>
 
     <script>
-        const API = 'https://script.google.com/macros/s/AKfycbycO3WbrAycpHFSCPWP2jTfZ_2_c8p47ugbgN1mg3JhcqHIsZaFd6jf9zBsTRP7eeuU/exec';
-        const urlParams = new URLSearchParams(window.location.search);
-        const viewerUid = urlParams.get('uid');
-        const isAdmin = (viewerUid === 'RIDA-259259');
+        const SOCIAL_API = "https://script.google.com/macros/s/AKfycbxjIBCavPwdL-F9ym4m0Oz77W-KgIY3JXQ1DcR2fl3HwfZDTT9SxoRARRRzWryEX6lGOQ/exec";
+        const ADMIN_UID = "RIDA-259259";
 
-        async function loadWall() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUser = {
+            uid: urlParams.get('uid') || "GUEST",
+            username: urlParams.get('username') || "Anonymous"
+        };
+
+        // --- SLIDESHOW LOGIC ---
+        const slides = [
+            { icon: 'fab fa-twitter', color: 'text-sky-400', text: 'Recent tweet: Join the #RidaNetwork revolution! 🚀' },
+            { icon: 'fab fa-instagram', color: 'text-pink-500', text: 'New photo posted under #RidaNetwork' },
+            { icon: 'fab fa-tiktok', color: 'text-white', text: 'Viral Rida Mining setup trending on TikTok' },
+            { icon: 'fab fa-youtube', color: 'text-red-600', text: 'New Tutorial: How to P2P on RidaChain' }
+        ];
+        let currentSlide = 0;
+
+        function runSlideshow() {
+            const container = document.getElementById('slideshow-content');
+            const progress = document.getElementById('slide-progress');
+            const slide = slides[currentSlide];
+            
+            container.classList.remove('slide-up');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('slide-up');
+
+            container.innerHTML = `
+                <i class="${slide.icon} ${slide.color} text-xl mb-2"></i>
+                <p class="text-[11px] font-bold text-slate-200 px-6">${slide.text}</p>
+            `;
+
+            progress.style.transition = 'none';
+            progress.style.width = '0%';
+            setTimeout(() => {
+                progress.style.transition = 'width 30s linear';
+                progress.style.width = '100%';
+            }, 100);
+
+            currentSlide = (currentSlide + 1) % slides.length;
+        }
+
+        // --- CORE WALL LOGIC ---
+        async function loadFeed() {
             try {
-                const res = await (await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'getFeed' }) })).json();
-                const container = document.getElementById('wall-container');
-                container.innerHTML = res.data.map(p => {
-                    const isSystem = p.username === 'ridaAdmin' || p.uid === 'RIDA-259259';
-                    return `
-                        <div class="post-card p-5 ${isSystem ? 'admin-post' : ''}">
-                            <div class="flex justify-between items-start mb-2">
+                const response = await fetch(SOCIAL_API, { method: 'POST', body: JSON.stringify({ action: 'getFeed' }) });
+                const result = await response.json();
+                if (result.success) {
+                    const container = document.getElementById('feed-container');
+                    
+                    // Filter for Admin Announcement
+                    const adminPost = result.data.find(p => p.uid === ADMIN_UID);
+                    if (adminPost) {
+                        document.getElementById('admin-section').classList.remove('hidden');
+                        document.getElementById('latest-announcement').innerText = adminPost.content;
+                    }
+
+                    container.innerHTML = result.data.map(post => `
+                        <div class="glass p-5 rounded-[2rem] ${post.uid === ADMIN_UID ? 'admin-glow' : ''}">
+                            <div class="flex justify-between mb-4">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-black tracking-tighter uppercase ${isSystem ? 'text-sky-400' : 'text-slate-400'}">
-                                        ${p.username} ${isSystem ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
-                                    </span>
-                                    <span class="text-[8px] text-slate-600">${new Date(p.timestamp).toLocaleDateString()}</span>
+                                    <div class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black ${post.uid === ADMIN_UID ? 'text-red-500' : 'text-sky-400'}">
+                                        ${post.username.charAt(0)}
+                                    </div>
+                                    <p class="text-[10px] font-black uppercase">${post.username} ${post.uid === ADMIN_UID ? ' <i class="fas fa-check-circle text-red-500 ml-1"></i>' : ''}</p>
                                 </div>
-                                ${isAdmin ? `<i onclick="deleteMsg('${p.id}')" class="fas fa-trash-alt text-red-500/30 hover:text-red-500 cursor-pointer text-xs"></i>` : ''}
+                                <p class="text-[8px] opacity-30 font-bold">${new Date(post.timestamp).toLocaleDateString()}</p>
                             </div>
-                            <p class="text-sm text-slate-200 leading-relaxed">${p.content}</p>
-                            <div class="mt-4 flex gap-4 items-center border-t border-white/5 pt-3">
-                                <button onclick="likePost('${p.id}')" class="text-[10px] font-bold text-slate-500 hover:text-pink-500 transition-colors">
-                                    <i class="fas fa-heart mr-1"></i> ${p.likes || 0}
-                                </button>
-                                <span class="text-[10px] font-bold text-slate-500"><i class="fas fa-comment mr-1"></i> REPLY</span>
-                            </div>
+                            <p class="text-xs leading-relaxed text-slate-300">${post.content}</p>
                         </div>
-                    `;
-                }).join('');
-            } catch(e) { console.error(e); }
+                    `).join('');
+                }
+            } catch (err) { console.error("Sync Error", err); }
         }
 
         async function publishPost() {
-            const content = document.getElementById('post-text').value;
-            if(!content) return;
-            await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'createPost', uid: viewerUid, content: content }) });
+            const text = document.getElementById('post-text').value;
+            if (!text.trim()) return;
+            await fetch(SOCIAL_API, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'createPost', uid: currentUser.uid, username: currentUser.username, content: text })
+            });
             document.getElementById('post-text').value = '';
-            loadWall();
+            loadFeed();
         }
 
-        async function likePost(postId) {
-            await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'likePost', postId: postId, uid: viewerUid }) });
-            loadWall();
-        }
-
-        async function deleteMsg(postId) {
-            if(!confirm("Delete this post?")) return;
-            await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'deletePost', postId: postId, adminUid: viewerUid }) });
-            loadWall();
-        }
-
-        loadWall();
-        setInterval(loadWall, 15000);
+        window.onload = () => {
+            document.getElementById('display-name').innerText = currentUser.username;
+            document.getElementById('user-avatar').innerText = currentUser.username.charAt(0);
+            loadFeed();
+            runSlideshow();
+            setInterval(runSlideshow, 30000); // 30 second timer
+        };
     </script>
 </body>
 </html>
-
