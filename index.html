@@ -12,7 +12,8 @@
         body { background: transparent; color: #fff; font-family: 'Outfit', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .admin-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .btn-send { background: linear-gradient(135deg, var(--sky) 0%, var(--indigo) 100%); }
+        .btn-send { background: linear-gradient(135deg, var(--sky) 0%, var(--indigo) 100%); transition: 0.3s; }
+        .btn-send:active { transform: scale(0.95); }
         .slide-up { animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { display: none; }
@@ -60,15 +61,13 @@
         const SOCIAL_API = "https://script.google.com/macros/s/AKfycbxjIBCavPwdL-F9ym4m0Oz77W-KgIY3JXQ1DcR2fl3HwfZDTT9SxoRARRRzWryEX6lGOQ/exec";
         const ADMIN_UID = "RIDA-259259";
 
+        // --- ENHANCED IDENTITY CAPTURE ---
         const urlParams = new URLSearchParams(window.location.search);
-        
-        // --- IDENTITY FIX ---
         const currentUser = {
             uid: urlParams.get('uid') || "GUEST",
-            username: urlParams.get('user') || urlParams.get('username') || "Anonymous"
+            username: urlParams.get('user') || urlParams.get('username') || "Miner-" + Math.floor(Math.random()*999)
         };
 
-        // If it's your UID, ensure the name is correct even if URL fails
         if(currentUser.uid === ADMIN_UID) {
             currentUser.username = "ridaAdmin";
         }
@@ -112,26 +111,30 @@
 
                     container.innerHTML = result.data.map(post => {
                         const isMainAdmin = post.uid === ADMIN_UID;
-                        const nameToDisplay = isMainAdmin ? "ridaAdmin" : (post.username || "Anonymous");
+                        const posterName = isMainAdmin ? "ridaAdmin" : (post.username || "Anonymous");
                         
                         return `
-                        <div class="glass p-5 rounded-[2rem] ${isMainAdmin ? 'admin-glow' : ''}">
+                        <div class="glass p-5 rounded-[2rem] ${isMainAdmin ? 'admin-glow' : ''} slide-up">
                             <div class="flex justify-between mb-4">
                                 <div class="flex items-center gap-2">
                                     <div class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black ${isMainAdmin ? 'text-red-500' : 'text-sky-400'}">
-                                        ${nameToDisplay.charAt(0)}
+                                        ${posterName.charAt(0)}
                                     </div>
-                                    <p class="text-[10px] font-black uppercase">${nameToDisplay} ${isMainAdmin ? ' <i class="fas fa-check-circle text-red-500 ml-1"></i>' : ''}</p>
+                                    <p class="text-[10px] font-black uppercase">${posterName} ${isMainAdmin ? ' <i class="fas fa-check-circle text-red-500 ml-1"></i>' : ''}</p>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <p class="text-[8px] opacity-30 font-bold">${new Date(post.timestamp).toLocaleDateString()}</p>
+                                    <p class="text-[8px] opacity-30 font-bold">${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
                                     ${currentUser.uid === ADMIN_UID ? `<i onclick="deletePost('${post.id || post.timestamp}')" class="fas fa-trash-alt text-red-500/20 hover:text-red-500 cursor-pointer text-[10px]"></i>` : ''}
                                 </div>
                             </div>
                             <p class="text-xs leading-relaxed text-slate-300">${post.content}</p>
                             <div class="mt-4 flex gap-4 border-t border-white/5 pt-3">
-                                <button class="text-[9px] font-bold text-slate-500 hover:text-sky-400"><i class="fas fa-heart mr-1"></i> LIKE</button>
-                                <button class="text-[9px] font-bold text-slate-500 hover:text-sky-400"><i class="fas fa-comment mr-1"></i> REPLY</button>
+                                <button onclick="interact('like', '${post.id || post.timestamp}')" class="text-[9px] font-bold text-slate-500 hover:text-sky-400 transition">
+                                    <i class="fas fa-heart mr-1"></i> ${post.likes || 0}
+                                </button>
+                                <button onclick="interact('reply', '${post.id || post.timestamp}')" class="text-[9px] font-bold text-slate-500 hover:text-sky-400 transition">
+                                    <i class="fas fa-comment mr-1"></i> REPLY
+                                </button>
                             </div>
                         </div>
                     `}).join('');
@@ -142,17 +145,29 @@
         async function publishPost() {
             const text = document.getElementById('post-text').value;
             if (!text.trim()) return;
-            // Send the username correctly to the database
             await fetch(SOCIAL_API, {
                 method: 'POST',
                 body: JSON.stringify({ 
                     action: 'createPost', 
                     uid: currentUser.uid, 
-                    username: currentUser.username, 
+                    username: currentUser.username, // Now correctly synced
                     content: text 
                 })
             });
             document.getElementById('post-text').value = '';
+            loadFeed();
+        }
+
+        async function interact(type, postId) {
+            // This enables the Like and Reply buttons to communicate with your sheet
+            await fetch(SOCIAL_API, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: type === 'like' ? 'likePost' : 'replyPost', 
+                    postId: postId, 
+                    uid: currentUser.uid 
+                })
+            });
             loadFeed();
         }
 
@@ -168,14 +183,16 @@
         window.onload = () => {
             document.getElementById('display-name').innerText = currentUser.username;
             document.getElementById('user-avatar').innerText = currentUser.username.charAt(0);
-            if(currentUser.uid === ADMIN_UID) document.getElementById('user-rank').innerText = "NETWORK ADMINISTRATOR";
+            if(currentUser.uid === ADMIN_UID) {
+                document.getElementById('user-rank').innerText = "NETWORK ADMINISTRATOR";
+                document.getElementById('user-rank').classList.add('text-red-500');
+            }
             
             loadFeed();
             runSlideshow();
             setInterval(runSlideshow, 30000);
-            setInterval(loadFeed, 60000); // Auto-refresh wall every minute
+            setInterval(loadFeed, 30000); // Faster sync
         };
     </script>
 </body>
 </html>
-
